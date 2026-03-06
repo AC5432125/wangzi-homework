@@ -59,13 +59,9 @@
             <!-- API配置 -->
             <div id="apiBox" class="api-box">
                 <strong>🔑 配置 Kimi API Key</strong>
-                <p style="font-size: 12px; color: #666; margin: 4px 0;">从 <a href="https://platform.moonshot.cn" target="_blank">platform.moonshot.cn</a> 获取</p>
+                <p style="font-size: 12px; color: #666; margin: 4px 0;">从 <a href="https://platform.moonshot.cn" target="_blank">platform.moonshot.cn</a> 获取，格式：sk-xxxxxxxx</p>
                 <input type="password" id="apiKeyInput" placeholder="sk-...">
                 <button class="btn-small" onclick="saveApiKey()">保存</button>
-            </div>
-            
-            <div id="apiStatus" class="hidden" style="margin-bottom: 16px; color: #4caf50;">
-                ✅ AI批改已就绪 <button onclick="showApiBox()" style="background: none; border: none; color: #667eea; cursor: pointer;">更换Key</button>
             </div>
 
             <!-- 上传作业 -->
@@ -100,24 +96,17 @@
         let apiKey = localStorage.getItem('kimi_api_key') || '';
         let currentImage = null;
         
+        // 如果有保存的key，自动填入输入框
         if (apiKey) {
-            document.getElementById('apiBox').classList.add('hidden');
-            document.getElementById('apiStatus').classList.remove('hidden');
+            document.getElementById('apiKeyInput').value = apiKey;
         }
         
         function saveApiKey() {
             const key = document.getElementById('apiKeyInput').value.trim();
-            if (!key.startsWith('sk-')) { alert('请输入有效的 API Key'); return; }
+            if (!key.startsWith('sk-')) { alert('请输入有效的 API Key（以 sk- 开头）'); return; }
             apiKey = key;
             localStorage.setItem('kimi_api_key', key);
-            document.getElementById('apiBox').classList.add('hidden');
-            document.getElementById('apiStatus').classList.remove('hidden');
-            alert('已保存！');
-        }
-        
-        function showApiBox() {
-            document.getElementById('apiBox').classList.remove('hidden');
-            document.getElementById('apiStatus').classList.add('hidden');
+            alert('API Key 已保存！现在可以开始批改了。');
         }
 
         // 标签切换
