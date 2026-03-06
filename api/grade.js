@@ -1,4 +1,5 @@
 // API Endpoint for homework grading - Vercel Serverless Function
+// Version: 2.0
 
 export default async function handler(req, res) {
   // CORS headers
@@ -23,6 +24,7 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.KIMI_API_KEY;
     if (!apiKey) {
+      console.error('KIMI_API_KEY not set');
       return res.status(500).json({ error: 'API key not configured' });
     }
 
@@ -57,6 +59,8 @@ export default async function handler(req, res) {
 润色版本：[修改后文本]`
     };
 
+    console.log('Calling Moonshot API...');
+    
     const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -79,6 +83,7 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const err = await response.json();
+      console.error('Moonshot API error:', err);
       throw new Error(err.error?.message || 'API error');
     }
 
