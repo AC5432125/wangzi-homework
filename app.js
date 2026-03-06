@@ -75,55 +75,62 @@ submitBtn.addEventListener('click', async () => {
     const subject = document.getElementById('subject').value;
     const subjectNames = { math: '数学', chinese: '语文', english: '英语' };
     
-    submitBtn.textContent = '批改中...';
+    submitBtn.textContent = 'AI批改中...';
     submitBtn.disabled = true;
     
-    // 模拟AI批改（实际应调用API）
-    await new Promise(r => setTimeout(r, 2000));
-    
-    const result = {
-        subject: subjectNames[subject],
-        score: Math.floor(Math.random() * 20) + 80,
-        errors: [
-            { type: '计算错误', reason: '步骤正确但结果算错', question: '第3题' },
-            { type: '概念模糊', reason: '公式记错', question: '第5题' }
-        ],
-        image: preview.dataset.image,
-        advice: '计算需要更仔细，建议多练习同类题型'
-    };
-    
-    displayResult(result);
-    Storage.saveRecord(result);
-    
-    // 保存错题
-    result.errors.forEach(err => {
-        Storage.saveMistake({
-            subject: result.subject,
-            question: err.question,
-            type: err.type,
-            reason: err.reason,
-            date: new Date().toLocaleDateString('zh-CN')
+    try {
+        // 提取base64图片数据
+        const imageBase64 = preview.dataset.image.split(',')[1];
+        
+        // 调用AI批改API
+        const response = await fetch('/api/grade', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                image: imageBase64,
+                subject: subjectNames[subject],
+                studentName: '王子'
+            })
         });
-    });
+        
+        if (!response.ok) {
+            throw new Error('批改服务暂时不可用');
+        }
+        
+        const data = await response.json();
+        
+        const result = {
+            subject: subjectNames[subject],
+            score: data.score || '评分中',
+            content: data.content || data.result,
+            image: preview.dataset.image,
+            timestamp: new Date().toISOString()
+        };
+        
+        displayAIResult(result);
+        Storage.saveRecord(result);
+        
+    } catch (error) {
+        alert('批改失败：' + error.message);
+        console.error('Grading error:', error);
+    }
     
     submitBtn.textContent = '开始批改';
     submitBtn.disabled = false;
 });
 
-function displayResult(result) {
+function displayAIResult(result) {
     gradingResult.innerHTML = `
         <div class="grading-result">
-            <h3>批改结果</h3>
-            <div class="score">${result.score}分</div>
+            <h3>🤖 AI 批改结果</h3>
+            <div class="score">${result.score}</div>
             <p>科目：${result.subject}</p>
-            <h4 style="margin-top:16px">错题分析：</h4>
-            ${result.errors.map(e => `
-                <div class="error-item">
-                    <strong>${e.question}</strong> - ${e.type}
-                    <p style="color:#666;font-size:14px">${e.reason}</p>
-                </div>
-            `).join('')}
-            <p style="margin-top:16px"><strong>建议：</strong>${result.advice}</p>
+            <div style="margin-top:16px;padding:16px;background:white;border-radius:8px;max-height:400px;overflow-y:auto;">
+                ${result.content}
+            </div>
+            <p style="margin-top:16px;color:#666;font-size:12px">批改时间：${new Date(result.timestamp).toLocaleString('zh-CN')}</p>
         </div>
     `;
 }
