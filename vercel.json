@@ -1,40 +1,8 @@
 {
   "version": 2,
   "name": "homework-grader",
-  "builds": [
-    {
-      "src": "api/grade.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/grade",
-      "dest": "/api/grade.js"
-    },
-    {
-      "src": "/style.css",
-      "dest": "/style.css"
-    },
-    {
-      "src": "/app.js",
-      "dest": "/app.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "public": true,
+  "rewrites": [
+    { "source": "/api/grade", "destination": "/api/grade.js" }
   ]
 }
