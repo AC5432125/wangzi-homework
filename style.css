@@ -1,0 +1,335 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+header p {
+    opacity: 0.9;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 12px 16px;
+    border: none;
+    background: white;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.tab-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-content h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* 上传区域 */
+.upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.upload-area:hover, .upload-area.dragover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.upload-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.upload-area p {
+    color: #6b7280;
+    margin-bottom: 16px;
+}
+
+#fileInput {
+    display: none;
+}
+
+.subject-select {
+    margin-top: 16px;
+}
+
+.subject-select label {
+    margin-right: 8px;
+}
+
+.subject-select select {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+}
+
+#preview {
+    margin-top: 20px;
+}
+
+#preview img {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: opacity 0.3s;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* 批改结果 */
+.grading-result {
+    margin-top: 24px;
+    padding: 20px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+}
+
+.grading-result h3 {
+    color: #667eea;
+    margin-bottom: 12px;
+}
+
+.grading-result .score {
+    font-size: 36px;
+    font-weight: bold;
+    color: #22c55e;
+}
+
+.grading-result .error-item {
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+/* 记录列表 */
+.record-item {
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.record-item .date {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.record-item .subject-tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.subject-tag.math { background: #dbeafe; color: #1d4ed8; }
+.subject-tag.chinese { background: #dcfce7; color: #15803d; }
+.subject-tag.english { background: #fef3c7; color: #b45309; }
+
+/* 错题本 */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.filter-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.mistake-card {
+    padding: 16px;
+    background: #fef2f2;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border-left: 4px solid #ef4444;
+}
+
+.mistake-card h4 {
+    color: #991b1b;
+    margin-bottom: 8px;
+}
+
+/* 薄弱点 */
+.weak-point-item {
+    padding: 16px;
+    background: #fff7ed;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.weak-point-item .progress-bar {
+    height: 8px;
+    background: #fed7aa;
+    border-radius: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.weak-point-item .progress {
+    height: 100%;
+    background: #f97316;
+    border-radius: 4px;
+}
+
+/* 练习生成 */
+.practice-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.practice-settings label {
+    font-weight: 600;
+}
+
+.practice-settings select,
+.practice-settings input {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.question-item {
+    padding: 16px;
+    background: #f0fdf4;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.question-item .q-num {
+    font-weight: 600;
+    color: #15803d;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+}
+
+.empty-state .icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+    
+    header h1 {
+        font-size: 22px;
+    }
+    
+    .tabs {
+        gap: 6px;
+    }
+    
+    .tab-btn {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+    
+    .tab-content {
+        padding: 16px;
+    }
+}
