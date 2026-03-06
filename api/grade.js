@@ -1,7 +1,7 @@
 // API Endpoint for homework grading
 // Deployed as Vercel Serverless Function
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       details: error.message 
     });
   }
-}
+};
 
 async function callKimiAPI(imageBase64, subject, studentName) {
   const apiKey = process.env.KIMI_API_KEY;
@@ -118,6 +118,7 @@ async function callKimiAPI(imageBase64, subject, studentName) {
 
   const prompt = prompts[subject] || prompts['数学'];
 
+  const fetch = require('node-fetch');
   const response = await fetch('https://api.kimi.com/coding/v1/chat/completions', {
     method: 'POST',
     headers: {
