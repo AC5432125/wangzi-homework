@@ -1,0 +1,13 @@
+{
+  "name": "homework-grader",
+  "version": "1.0.0",
+  "description": "AI Homework Grading Assistant for 王子",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["homework", "ai", "education"],
+  "author": "Kimi Claw",
+  "license": "ISC"
+}
