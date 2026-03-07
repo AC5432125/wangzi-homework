@@ -59,11 +59,8 @@
         </div>
         
         <div class="content">
-            <!-- API配置 -->
-            <div class="settings-link">
-                <a onclick="toggleApiBox()" id="settingsBtn">⚙️ API设置</a>
-            </div>
-            <div id="apiBox" class="api-box">
+            <!-- API配置（已隐藏，如需修改请重新部署）-->
+            <div id="apiBox" class="api-box hidden">
                 <strong>🔑 配置 Kimi API Key</strong>
                 <p style="font-size: 12px; color: #666; margin: 4px 0;">从 <a href="https://platform.moonshot.cn" target="_blank">platform.moonshot.cn</a> 获取，格式：sk-xxxxxxxx</p>
                 <input type="password" id="apiKeyInput" placeholder="sk-...">
@@ -102,41 +99,18 @@
         let apiKey = localStorage.getItem('kimi_api_key') || '';
         let currentImage = null;
         
-        // 页面加载完成后初始化
+        // 页面加载完成后检查API Key
         document.addEventListener('DOMContentLoaded', function() {
-            init();
+            if (!apiKey) {
+                alert('请先配置 Kimi API Key');
+            }
         });
-        
-        // 初始化：如果有保存的key，隐藏配置框
-        function init() {
-            if (apiKey) {
-                document.getElementById('apiKeyInput').value = '••••••••••••••••';
-                document.getElementById('apiBox').classList.add('hidden');
-                document.getElementById('settingsBtn').textContent = '⚙️ API设置（已配置）';
-            }
-        }
-        
-        // 切换API配置框显示/隐藏
-        function toggleApiBox() {
-            const box = document.getElementById('apiBox');
-            if (box.classList.contains('hidden')) {
-                box.classList.remove('hidden');
-                if (apiKey) {
-                    document.getElementById('apiKeyInput').value = apiKey;
-                }
-            } else {
-                box.classList.add('hidden');
-            }
-        }
         
         function saveApiKey() {
             const key = document.getElementById('apiKeyInput').value.trim();
             if (!key.startsWith('sk-')) { alert('请输入有效的 API Key（以 sk- 开头）'); return; }
             apiKey = key;
             localStorage.setItem('kimi_api_key', key);
-            document.getElementById('apiKeyInput').value = '••••••••••••••••';
-            document.getElementById('apiBox').classList.add('hidden');
-            document.getElementById('settingsBtn').textContent = '⚙️ API设置（已配置）';
             alert('API Key 已保存！');
         }
 
