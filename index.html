@@ -688,21 +688,27 @@
             filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             list.innerHTML = filtered.map(m => `
-                <div class="mistake-item" onclick="showMistakeDetail(${m.id})">
-                    <div class="mistake-header">
-                        <div>
-                            <span class="tag tag-${m.subject === '数学' ? 'math' : m.subject === '语文' ? 'chinese' : 'english'}">${m.subject}</span>
-                            <span class="mistake-title" style="margin-left: 8px;">第${m.number || '?'}题</span>
+                <div class="mistake-item" style="flex-direction: column; align-items: flex-start;">
+                    <div onclick="showMistakeDetail(${m.id})" style="width: 100%; cursor: pointer;">
+                        <div class="mistake-header">
+                            <div>
+                                <span class="tag tag-${m.subject === '数学' ? 'math' : m.subject === '语文' ? 'chinese' : 'english'}">${m.subject}</span>
+                                <span class="mistake-title" style="margin-left: 8px;">第${m.number || '?'}题</span>
+                            </div>
+                            <span class="mistake-meta">${m.date}</span>
                         </div>
-                        <span class="mistake-meta">${m.date}</span>
+                        <div class="mistake-content">
+                            <div>${m.question || '题目内容'}</div>
+                            <div style="margin-top: 8px;">
+                                <span class="error-answer">你的答案：${m.studentAnswer || '未作答'}</span>
+                                <span style="margin: 0 8px;">→</span>
+                                <span class="correct-answer">正确答案</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mistake-content">
-                        <div>${m.question || '题目内容'}</div>
-                        <div style="margin-top: 8px;">
-                            <span class="error-answer">你的答案：${m.studentAnswer || '未作答'}</span>
-                            <span style="margin: 0 8px;">→</span>
-                            <span class="correct-answer">正确答案</span>
-                        </div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px; width: 100%;">
+                        <button onclick="redoMistake(${m.id}); event.stopPropagation();" style="flex: 1; background: #667eea; color: white; border: none; padding: 8px; border-radius: 4px; font-size: 13px; cursor: pointer;">🔄 重做</button>
+                        <button onclick="deleteMistake(${m.id}); event.stopPropagation();" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; cursor: pointer;">🗑️ 删除</button>
                     </div>
                 </div>
             `).join('');
@@ -746,6 +752,10 @@
                     <div class="section-title">🕐 记录时间</div>
                     <div class="section-content">${m.date} ${m.time}</div>
                 </div>
+                <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e9ecef;">
+                    <button onclick="closeModal(); redoMistake(${m.id});" style="flex: 1; background: #667eea; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer;">🔄 重做</button>
+                    <button onclick="closeModal(); deleteMistake(${m.id});" style="background: #e74c3c; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer;">🗑️ 删除</button>
+                </div>
             `;
             showModal('错题详情', content);
         }
@@ -759,6 +769,56 @@
             } else {
                 badge.style.display = 'none';
             }
+        }
+
+        // 删除单条错题
+        function deleteMistake(mistakeId) {
+            if (!confirm('确定要删除这道错题吗？')) return;
+            
+            let mistakes = JSON.parse(localStorage.getItem('mistakes') || '[]');
+            mistakes = mistakes.filter(m => m.id !== mistakeId);
+            localStorage.setItem('mistakes', JSON.stringify(mistakes));
+            
+            updateMistakeCount();
+            loadMistakes();
+            alert('已删除！');
+        }
+
+        // 重做错题
+        function redoMistake(mistakeId) {
+            const mistakes = JSON.parse(localStorage.getItem('mistakes') || '[]');
+            const m = mistakes.find(item => item.id === mistakeId);
+            if (!m) {
+                alert('找不到该错题');
+                return;
+            }
+            
+            // 查找原记录
+            const records = JSON.parse(localStorage.getItem('records') || '[]');
+            const record = records.find(r => r.id === m.recordId);
+            
+            if (!record || !record.image) {
+                alert('该错题没有保存原作业图片，无法重做');
+                return;
+            }
+            
+            // 加载图片
+            currentImage = record.image;
+            document.getElementById('preview').innerHTML = `<img src="${currentImage}">`;
+            document.getElementById('preview').classList.remove('hidden');
+            
+            // 设置科目
+            document.getElementById('subject').value = m.subject;
+            
+            // 切换到上传页面
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector('[data-tab="upload"]').classList.add('active');
+            document.getElementById('upload').classList.add('active');
+            
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+            alert(`已加载原作业，这是第${m.number}题。可以重新作答后再批改。`);
         }
 
         function showModal(title, content) {
