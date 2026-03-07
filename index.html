@@ -513,8 +513,8 @@
                 return;
             }
             list.innerHTML = records.map(r => `
-                <div class="record-item" onclick="showRecordDetail(${r.id})" style="flex-direction: column; align-items: flex-start;">
-                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                <div class="record-item" style="flex-direction: column; align-items: flex-start;">
+                    <div onclick="showRecordDetail(${r.id})" style="display: flex; justify-content: space-between; width: 100%; align-items: center; cursor: pointer;">
                         <div>
                             <span class="tag tag-${r.subject === '数学' ? 'math' : r.subject === '语文' ? 'chinese' : 'english'}">${r.subject}</span>
                             <span style="margin-left: 12px; font-weight: bold; color: #667eea;">${r.score}</span>
@@ -523,9 +523,65 @@
                         </div>
                         <span style="color: #999; font-size: 12px;">${r.date}</span>
                     </div>
-                    ${r.image ? `<div style="margin-top: 8px; width: 100%;"><img src="${r.image}" style="max-height: 100px; max-width: 100%; border-radius: 4px; border: 1px solid #e9ecef;"></div>` : ''}
+                    ${r.image ? `<div onclick="showRecordDetail(${r.id})" style="margin-top: 8px; width: 100%; cursor: pointer;"><img src="${r.image}" style="max-height: 100px; max-width: 100%; border-radius: 4px; border: 1px solid #e9ecef;"></div>` : ''}
+                    <div style="display: flex; gap: 8px; margin-top: 12px; width: 100%;">
+                        <button onclick="regradeRecord(${r.id}); event.stopPropagation();" style="flex: 1; background: #667eea; color: white; border: none; padding: 8px; border-radius: 4px; font-size: 13px; cursor: pointer;">🔄 再次批改</button>
+                        <button onclick="deleteRecord(${r.id}); event.stopPropagation();" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; cursor: pointer;">🗑️ 删除</button>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        // 删除批改记录
+        function deleteRecord(recordId) {
+            if (!confirm('确定要删除这条批改记录吗？\n（关联的错题也会被删除）')) return;
+            
+            // 删除记录
+            let records = JSON.parse(localStorage.getItem('records') || '[]');
+            records = records.filter(r => r.id !== recordId);
+            localStorage.setItem('records', JSON.stringify(records));
+            
+            // 删除关联的错题
+            let mistakes = JSON.parse(localStorage.getItem('mistakes') || '[]');
+            mistakes = mistakes.filter(m => m.recordId !== recordId);
+            localStorage.setItem('mistakes', JSON.stringify(mistakes));
+            
+            updateMistakeCount();
+            loadRecords();
+            alert('已删除！');
+        }
+
+        // 再次批改
+        function regradeRecord(recordId) {
+            const records = JSON.parse(localStorage.getItem('records') || '[]');
+            const record = records.find(r => r.id === recordId);
+            if (!record) {
+                alert('找不到该记录');
+                return;
+            }
+            
+            if (!record.image) {
+                alert('该记录没有保存作业图片，无法再次批改');
+                return;
+            }
+            
+            // 加载图片
+            currentImage = record.image;
+            document.getElementById('preview').innerHTML = `<img src="${currentImage}">`;
+            document.getElementById('preview').classList.remove('hidden');
+            
+            // 设置科目
+            document.getElementById('subject').value = record.subject;
+            
+            // 切换到上传页面
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector('[data-tab="upload"]').classList.add('active');
+            document.getElementById('upload').classList.add('active');
+            
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+            alert('已加载原作业，可以再次批改。点击"开始批改"按钮即可。');
         }
 
         function showRecordDetail(recordId) {
@@ -587,6 +643,14 @@
                     </div>
                 `;
             }
+            
+            // 操作按钮
+            content += `
+                <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e9ecef;">
+                    <button onclick="closeModal(); regradeRecord(${record.id});" style="flex: 1; background: #667eea; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer;">🔄 再次批改</button>
+                    <button onclick="closeModal(); deleteRecord(${record.id});" style="background: #e74c3c; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer;">🗑️ 删除记录</button>
+                </div>
+            `;
             
             showModal('批改详情', content);
         }
