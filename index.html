@@ -18,8 +18,11 @@
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
         .api-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+        .api-box.hidden { display: none !important; }
         .api-box input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-top: 8px; }
         .api-box .btn-small { background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
+        .settings-link { text-align: right; margin-bottom: 12px; }
+        .settings-link a { color: #667eea; font-size: 13px; cursor: pointer; text-decoration: underline; }
         .drop-zone { border: 2px dashed #ccc; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 20px; }
         .drop-zone:hover { border-color: #667eea; background: #f8f9ff; }
         .drop-zone .icon { font-size: 48px; margin-bottom: 12px; }
@@ -57,6 +60,9 @@
         
         <div class="content">
             <!-- API配置 -->
+            <div class="settings-link">
+                <a onclick="toggleApiBox()" id="settingsBtn">⚙️ API设置</a>
+            </div>
             <div id="apiBox" class="api-box">
                 <strong>🔑 配置 Kimi API Key</strong>
                 <p style="font-size: 12px; color: #666; margin: 4px 0;">从 <a href="https://platform.moonshot.cn" target="_blank">platform.moonshot.cn</a> 获取，格式：sk-xxxxxxxx</p>
@@ -96,9 +102,31 @@
         let apiKey = localStorage.getItem('kimi_api_key') || '';
         let currentImage = null;
         
-        // 如果有保存的key，自动填入输入框
-        if (apiKey) {
-            document.getElementById('apiKeyInput').value = apiKey;
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+        });
+        
+        // 初始化：如果有保存的key，隐藏配置框
+        function init() {
+            if (apiKey) {
+                document.getElementById('apiKeyInput').value = '••••••••••••••••';
+                document.getElementById('apiBox').classList.add('hidden');
+                document.getElementById('settingsBtn').textContent = '⚙️ API设置（已配置）';
+            }
+        }
+        
+        // 切换API配置框显示/隐藏
+        function toggleApiBox() {
+            const box = document.getElementById('apiBox');
+            if (box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                if (apiKey) {
+                    document.getElementById('apiKeyInput').value = apiKey;
+                }
+            } else {
+                box.classList.add('hidden');
+            }
         }
         
         function saveApiKey() {
@@ -106,7 +134,10 @@
             if (!key.startsWith('sk-')) { alert('请输入有效的 API Key（以 sk- 开头）'); return; }
             apiKey = key;
             localStorage.setItem('kimi_api_key', key);
-            alert('API Key 已保存！现在可以开始批改了。');
+            document.getElementById('apiKeyInput').value = '••••••••••••••••';
+            document.getElementById('apiBox').classList.add('hidden');
+            document.getElementById('settingsBtn').textContent = '⚙️ API设置（已配置）';
+            alert('API Key 已保存！');
         }
 
         // 标签切换
