@@ -429,7 +429,7 @@
                             <div style="margin-bottom: 6px; color: #666;"><strong>你的答案：</strong>${qAnswer}</div>
                             ${!q.isCorrect && qCorrect ? `<div style="margin-bottom: 6px; color: #27ae60;"><strong>正确答案：</strong>${qCorrect}</div>` : ''}
                             <div style="color: #666; font-size: 13px; margin-bottom: 8px;"><strong>解析：</strong>${qAnalysis}</div>
-                            ${!q.isCorrect ? `<button onclick="addToMistake(${record.id}, ${idx})" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">➕ 加入错题本</button>` : ''}
+                            <button onclick="addToMistake(${record.id}, ${idx})" style="background: ${q.isCorrect ? '#667eea' : '#e74c3c'}; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">${q.isCorrect ? '⭐ 标记重点' : '➕ 加入错题本'}</button>
                         </div>
                     `;
                 });
