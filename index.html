@@ -219,39 +219,41 @@
                 // 结构化JSON输出提示词
                 const promptText = `你是一位资深的${subject}老师，请仔细批改这份学生作业。
 
-请以JSON格式返回批改结果，格式如下：
+请按以下JSON格式返回批改结果：
 {
-  "score": "得分，如 85",
-  "totalScore": "总分，如 100",
+  "score": "得分数字",
+  "totalScore": "总分数字", 
   "overallComment": "总体评价",
   "questions": [
     {
-      "number": "题号",
-      "question": "题目内容（简要描述）",
-      "studentAnswer": "学生的答案",
+      "number": "1",
+      "question": "题目内容描述",
+      "studentAnswer": "学生写的答案，如果是空白写'未作答'",
       "correctAnswer": "正确答案",
       "isCorrect": true/false,
-      "analysis": "解析和错因分析"
+      "analysis": "解析说明"
     }
   ],
   "wrongQuestions": [
     {
-      "number": "错题题号",
+      "number": "1", 
       "question": "题目内容",
-      "studentAnswer": "错误答案",
+      "studentAnswer": "学生的错误答案",
       "correctAnswer": "正确答案",
-      "errorType": "错误类型（概念错误/计算错误/粗心/不理解题意等）",
+      "errorType": "错误类型如：概念错误/计算错误/粗心/未作答",
       "analysis": "详细解析"
     }
   ],
   "studyAdvice": "学习建议"
 }
 
-注意事项：
-1. 必须返回合法的JSON格式
-2. 只返回JSON，不要返回其他文字说明
-3. 对于每道题，尽可能提取题目内容、学生答案和正确答案
-4. 错题分析要具体，指出错因`;
+重要提示：
+1. 必须严格按照JSON格式返回
+2. number字段必须是题号数字（如"1", "2", "3"）
+3. 仔细看图片中学生写的答案，填入studentAnswer
+4. 如果学生没写或空白，studentAnswer填"未作答"
+5. 如果是错题，同时加入wrongQuestions数组
+6. 只返回JSON，不要其他文字`;
 
                 const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
                     method: 'POST',
@@ -296,6 +298,7 @@
                     gradeResult = JSON.parse(jsonStr);
                 } catch (e) {
                     // 如果JSON解析失败，使用原始文本
+                    console.error('JSON parse error:', e);
                     gradeResult = {
                         score: '?',
                         totalScore: '100',
@@ -306,17 +309,36 @@
                     };
                 }
                 
+                // 确保字段存在，处理undefined
+                const safeQuestions = (gradeResult.questions || []).map((q, idx) => ({
+                    number: q.number || (idx + 1).toString(),
+                    question: q.question || '第' + (idx + 1) + '题',
+                    studentAnswer: q.studentAnswer || '未作答',
+                    correctAnswer: q.correctAnswer || '',
+                    isCorrect: q.isCorrect === true,
+                    analysis: q.analysis || '暂无解析'
+                }));
+                
+                const safeWrongQuestions = (gradeResult.wrongQuestions || []).map((wq, idx) => ({
+                    number: wq.number || (idx + 1).toString(),
+                    question: wq.question || '题目内容',
+                    studentAnswer: wq.studentAnswer || '未作答',
+                    correctAnswer: wq.correctAnswer || '',
+                    errorType: wq.errorType || '错误',
+                    analysis: wq.analysis || '暂无解析'
+                }));
+                
                 const record = {
                     id: Date.now(),
                     timestamp: new Date().toISOString(),
                     date: new Date().toLocaleDateString('zh-CN'),
                     time: new Date().toLocaleTimeString('zh-CN'),
                     subject: subject,
-                    score: `${gradeResult.score}/${gradeResult.totalScore}`,
-                    overallComment: gradeResult.overallComment,
-                    questions: gradeResult.questions || [],
-                    wrongQuestions: gradeResult.wrongQuestions || [],
-                    studyAdvice: gradeResult.studyAdvice,
+                    score: `${gradeResult.score || '?'}/${gradeResult.totalScore || '100'}`,
+                    overallComment: gradeResult.overallComment || '',
+                    questions: safeQuestions,
+                    wrongQuestions: safeWrongQuestions,
+                    studyAdvice: gradeResult.studyAdvice || '',
                     rawContent: aiContent
                 };
                 
@@ -390,15 +412,20 @@
                         <div class="section-content">
                 `;
                 record.questions.forEach((q, idx) => {
+                    const qNum = q.number || (idx + 1);
+                    const qTitle = q.question || `第${qNum}题`;
+                    const qAnswer = q.studentAnswer || '未作答';
+                    const qCorrect = q.correctAnswer || '';
+                    const qAnalysis = q.analysis || '暂无解析';
                     const statusIcon = q.isCorrect ? '✅' : '❌';
                     const statusColor = q.isCorrect ? '#27ae60' : '#e74c3c';
                     html += `
                         <div style="margin-bottom: 16px; padding: 12px; background: ${q.isCorrect ? '#f0fff4' : '#fff3f3'}; border-radius: 8px; border-left: 4px solid ${statusColor};">
-                            <div style="font-weight: 600; margin-bottom: 8px;">${statusIcon} 第${q.number || idx+1}题</div>
-                            <div style="margin-bottom: 6px;"><strong>题目：</strong>${q.question || '题目内容'}</div>
-                            <div style="margin-bottom: 6px; color: #666;"><strong>你的答案：</strong>${q.studentAnswer || '未作答'}</div>
-                            ${!q.isCorrect ? `<div style="margin-bottom: 6px; color: #27ae60;"><strong>正确答案：</strong>${q.correctAnswer || '见解析'}</div>` : ''}
-                            <div style="color: #666; font-size: 13px;"><strong>解析：</strong>${q.analysis || '暂无解析'}</div>
+                            <div style="font-weight: 600; margin-bottom: 8px;">${statusIcon} 第${qNum}题</div>
+                            <div style="margin-bottom: 6px;"><strong>题目：</strong>${qTitle}</div>
+                            <div style="margin-bottom: 6px; color: #666;"><strong>你的答案：</strong>${qAnswer}</div>
+                            ${!q.isCorrect && qCorrect ? `<div style="margin-bottom: 6px; color: #27ae60;"><strong>正确答案：</strong>${qCorrect}</div>` : ''}
+                            <div style="color: #666; font-size: 13px;"><strong>解析：</strong>${qAnalysis}</div>
                         </div>
                     `;
                 });
@@ -413,8 +440,10 @@
                         <div class="section-content">
                 `;
                 record.wrongQuestions.forEach((wq, idx) => {
+                    const wqNum = wq.number || (idx + 1);
+                    const wqType = wq.errorType || '错误';
                     html += `<div style="margin-bottom: 8px; padding: 8px; background: #fff3f3; border-radius: 4px;">
-                        <strong>第${wq.number}题</strong> - ${wq.errorType || '错误'}
+                        <strong>第${wqNum}题</strong> - ${wqType}
                     </div>`;
                 });
                 html += `</div></div>`;
@@ -471,13 +500,18 @@
             
             if (record.wrongQuestions && record.wrongQuestions.length > 0) {
                 content += `<div class="section"><div class="section-title">❌ 错题详情</div>`;
-                record.wrongQuestions.forEach(wq => {
+                record.wrongQuestions.forEach((wq, idx) => {
+                    const wqNum = wq.number || (idx + 1);
+                    const wqQ = wq.question || '题目内容';
+                    const wqSA = wq.studentAnswer || '未作答';
+                    const wqCA = wq.correctAnswer || '见解析';
+                    const wqAna = wq.analysis || wq.errorType || '暂无解析';
                     content += `
                         <div class="section-content" style="margin-bottom: 12px;">
-                            <div class="question-text">第${wq.number}题：${wq.question || '题目内容'}</div>
-                            <div class="error-answer">❌ 你的答案：${wq.studentAnswer || '未作答'}</div>
-                            <div class="correct-answer">✅ 正确答案：${wq.correctAnswer || '见解析'}</div>
-                            <div style="margin-top: 8px; color: #666;">📖 解析：${wq.analysis || wq.errorType || '暂无解析'}</div>
+                            <div class="question-text">第${wqNum}题：${wqQ}</div>
+                            <div class="error-answer">❌ 你的答案：${wqSA}</div>
+                            <div class="correct-answer">✅ 正确答案：${wqCA}</div>
+                            <div style="margin-top: 8px; color: #666;">📖 解析：${wqAna}</div>
                         </div>
                     `;
                 });
@@ -533,7 +567,7 @@
                     <div class="mistake-header">
                         <div>
                             <span class="tag tag-${m.subject === '数学' ? 'math' : m.subject === '语文' ? 'chinese' : 'english'}">${m.subject}</span>
-                            <span class="mistake-title" style="margin-left: 8px;">第${m.number}题</span>
+                            <span class="mistake-title" style="margin-left: 8px;">第${m.number || '?'}题</span>
                         </div>
                         <span class="mistake-meta">${m.date}</span>
                     </div>
