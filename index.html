@@ -419,13 +419,16 @@
                     const qAnalysis = q.analysis || '暂无解析';
                     const statusIcon = q.isCorrect ? '✅' : '❌';
                     const statusColor = q.isCorrect ? '#27ae60' : '#e74c3c';
+                    // 生成唯一ID用于添加错题
+                    const questionId = `q_${record.id}_${idx}`;
                     html += `
-                        <div style="margin-bottom: 16px; padding: 12px; background: ${q.isCorrect ? '#f0fff4' : '#fff3f3'}; border-radius: 8px; border-left: 4px solid ${statusColor};">
+                        <div id="${questionId}" style="margin-bottom: 16px; padding: 12px; background: ${q.isCorrect ? '#f0fff4' : '#fff3f3'}; border-radius: 8px; border-left: 4px solid ${statusColor};">
                             <div style="font-weight: 600; margin-bottom: 8px;">${statusIcon} 第${qNum}题</div>
                             <div style="margin-bottom: 6px;"><strong>题目：</strong>${qTitle}</div>
                             <div style="margin-bottom: 6px; color: #666;"><strong>你的答案：</strong>${qAnswer}</div>
                             ${!q.isCorrect && qCorrect ? `<div style="margin-bottom: 6px; color: #27ae60;"><strong>正确答案：</strong>${qCorrect}</div>` : ''}
-                            <div style="color: #666; font-size: 13px;"><strong>解析：</strong>${qAnalysis}</div>
+                            <div style="color: #666; font-size: 13px; margin-bottom: 8px;"><strong>解析：</strong>${qAnalysis}</div>
+                            ${!q.isCorrect ? `<button onclick="addToMistake(${record.id}, ${idx})" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">➕ 加入错题本</button>` : ''}
                         </div>
                     `;
                 });
@@ -460,6 +463,45 @@
             
             html += '</div>';
             resultDiv.innerHTML = html;
+        }
+
+        // 手动添加错题到错题本
+        function addToMistake(recordId, questionIndex) {
+            const records = JSON.parse(localStorage.getItem('records') || '[]');
+            const record = records.find(r => r.id === recordId);
+            if (!record || !record.questions || !record.questions[questionIndex]) {
+                alert('找不到该题目');
+                return;
+            }
+            
+            const q = record.questions[questionIndex];
+            const mistakes = JSON.parse(localStorage.getItem('mistakes') || '[]');
+            
+            // 检查是否已存在
+            const exists = mistakes.some(m => m.recordId === recordId && m.number === (q.number || (questionIndex + 1).toString()));
+            if (exists) {
+                alert('该题已在错题本中');
+                return;
+            }
+            
+            mistakes.push({
+                id: Date.now(),
+                recordId: recordId,
+                timestamp: record.timestamp,
+                date: record.date,
+                time: record.time,
+                subject: record.subject,
+                number: q.number || (questionIndex + 1).toString(),
+                question: q.question || `第${q.number || (questionIndex + 1)}题`,
+                studentAnswer: q.studentAnswer || '未作答',
+                correctAnswer: q.correctAnswer || '',
+                errorType: q.analysis ? (q.analysis.includes('概念') ? '概念错误' : q.analysis.includes('计算') ? '计算错误' : '错误') : '错误',
+                analysis: q.analysis || '暂无解析'
+            });
+            
+            localStorage.setItem('mistakes', JSON.stringify(mistakes));
+            updateMistakeCount();
+            alert('已加入错题本！');
         }
 
         function loadRecords() {
