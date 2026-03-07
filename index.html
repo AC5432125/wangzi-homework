@@ -339,7 +339,8 @@
                     questions: safeQuestions,
                     wrongQuestions: safeWrongQuestions,
                     studyAdvice: gradeResult.studyAdvice || '',
-                    rawContent: aiContent
+                    rawContent: aiContent,
+                    image: currentImage // 保存作业图片
                 };
                 
                 // 保存批改记录
@@ -512,14 +513,17 @@
                 return;
             }
             list.innerHTML = records.map(r => `
-                <div class="record-item" onclick="showRecordDetail(${r.id})">
-                    <div>
-                        <span class="tag tag-${r.subject === '数学' ? 'math' : r.subject === '语文' ? 'chinese' : 'english'}">${r.subject}</span>
-                        <span style="margin-left: 12px; font-weight: bold; color: #667eea;">${r.score}</span>
-                        ${r.wrongQuestions && r.wrongQuestions.length > 0 ? 
-                            `<span style="color: #e74c3c; margin-left: 8px;">❌ ${r.wrongQuestions.length}题</span>` : ''}
+                <div class="record-item" onclick="showRecordDetail(${r.id})" style="flex-direction: column; align-items: flex-start;">
+                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                        <div>
+                            <span class="tag tag-${r.subject === '数学' ? 'math' : r.subject === '语文' ? 'chinese' : 'english'}">${r.subject}</span>
+                            <span style="margin-left: 12px; font-weight: bold; color: #667eea;">${r.score}</span>
+                            ${r.wrongQuestions && r.wrongQuestions.length > 0 ? 
+                                `<span style="color: #e74c3c; margin-left: 8px;">❌ ${r.wrongQuestions.length}题</span>` : ''}
+                        </div>
+                        <span style="color: #999; font-size: 12px;">${r.date}</span>
                     </div>
-                    <span style="color: #999; font-size: 12px;">${r.date}</span>
+                    ${r.image ? `<div style="margin-top: 8px; width: 100%;"><img src="${r.image}" style="max-height: 100px; max-width: 100%; border-radius: 4px; border: 1px solid #e9ecef;"></div>` : ''}
                 </div>
             `).join('');
         }
@@ -534,6 +538,21 @@
                     <div class="section-title">📊 得分</div>
                     <div class="section-content" style="font-size: 24px; text-align: center; color: #667eea;">${record.score}</div>
                 </div>
+            `;
+            
+            // 显示作业图片
+            if (record.image) {
+                content += `
+                    <div class="section">
+                        <div class="section-title">📷 作业原图</div>
+                        <div class="section-content" style="text-align: center;">
+                            <img src="${record.image}" style="max-width: 100%; max-height: 400px; border-radius: 8px; cursor: pointer;" onclick="window.open('${record.image}')">
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content += `
                 <div class="section">
                     <div class="section-title">💬 总体评价</div>
                     <div class="section-content">${record.overallComment || '暂无'}</div>
