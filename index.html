@@ -368,6 +368,7 @@
         function displayResult(record) {
             const resultDiv = document.getElementById('result');
             const hasMistakes = record.wrongQuestions && record.wrongQuestions.length > 0;
+            const hasQuestions = record.questions && record.questions.length > 0;
             
             let html = `
                 <div class="result">
@@ -381,6 +382,30 @@
                     </div>
             `;
             
+            // 逐题批改详情
+            if (hasQuestions) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">📝 逐题批改（共${record.questions.length}题）</div>
+                        <div class="section-content">
+                `;
+                record.questions.forEach((q, idx) => {
+                    const statusIcon = q.isCorrect ? '✅' : '❌';
+                    const statusColor = q.isCorrect ? '#27ae60' : '#e74c3c';
+                    html += `
+                        <div style="margin-bottom: 16px; padding: 12px; background: ${q.isCorrect ? '#f0fff4' : '#fff3f3'}; border-radius: 8px; border-left: 4px solid ${statusColor};">
+                            <div style="font-weight: 600; margin-bottom: 8px;">${statusIcon} 第${q.number || idx+1}题</div>
+                            <div style="margin-bottom: 6px;"><strong>题目：</strong>${q.question || '题目内容'}</div>
+                            <div style="margin-bottom: 6px; color: #666;"><strong>你的答案：</strong>${q.studentAnswer || '未作答'}</div>
+                            ${!q.isCorrect ? `<div style="margin-bottom: 6px; color: #27ae60;"><strong>正确答案：</strong>${q.correctAnswer || '见解析'}</div>` : ''}
+                            <div style="color: #666; font-size: 13px;"><strong>解析：</strong>${q.analysis || '暂无解析'}</div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+            
+            // 错题概览
             if (hasMistakes) {
                 html += `
                     <div class="section">
